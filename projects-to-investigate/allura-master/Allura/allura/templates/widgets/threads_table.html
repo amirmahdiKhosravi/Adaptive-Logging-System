@@ -1,0 +1,84 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% import 'allura:templates/jinja_master/lib.html' as lib %}
+
+{% set forum_subscribed = c.subscribed %} {# set in controller #}
+{% set tool_subscribed = c.tool_subscribed %}
+
+<div{{ {'id': div_id}|xmlattr }}>
+  <table class="forum-list clear">
+    <thead>
+      <tr>
+        {% if not c.user.is_anonymous() and allow_subscriptions %}
+          <th>{{ g.icons['mail'].render(tag='span', title='Subscriptions') }}</th>
+        {% endif %}
+        <th class="topic">Topic</th>
+        <th>Posts</th>
+        <th>Views</th>
+        <th>Last Post</th>
+      </tr>
+    </thead>
+    <tbody class="forum-list">
+      {% for thread in value %}
+      <tr>
+        {% if not c.user.is_anonymous() and allow_subscriptions %}
+          <td>
+            <input type="checkbox" name="threads-{{loop.index0}}.subscription"
+                   {%- if thread.subscribed(include_parents=False) or forum_subscribed or tool_subscribed %} checked="checked" {% endif -%}
+                   {%- if forum_subscribed or tool_subscribed %}
+                        disabled title="You are subscribed to this entire {% if forum_subscribed %}Forum. Unsubscribe with mail icon in upper right, or on Account - Subscriptions page.
+                            {%- else %}Discussion tool.  Unsubscribe on Account - Subscriptions page.{% endif %}"
+                   {%- endif -%}
+            />
+            <input type="hidden" name="threads-{{loop.index0}}._id" value="{{thread._id}}"/>
+          </td>
+        {% endif %}
+        {% if not thread.first_post %}
+        <td class="topic">
+          {% if 'flags' in thread and 'Sticky' in thread.flags %}
+            {{ g.icons['pin'].render(href=thread.url(), extra_css='btn', title='Sticky', show_title=True) }}
+          {% endif %}
+          <h3><a href="{{thread.url()}}">{{thread.subject and h.text.truncate(thread.subject, 72) or '(no subject)'}}</a></h3>
+        </td>
+        {% else %}
+        <td class="topic">
+          {% set author = thread.first_post.author() %}
+          {% if 'flags' in thread and 'Sticky' in thread.flags %}
+            {{ g.icons['pin'].render(href=thread.url(), extra_css='btn', title='Sticky', show_title=True) }}
+          {% endif %}
+          <h3><a href="{{thread.url()}}">{{thread.subject and h.text.truncate(thread.subject, 72) or '(no subject)'}}</a></h3>
+          <span>By {{lib.user_link(author)}}</span> on {{thread.first_post.timestamp.strftime('%a %b %d, %Y %I:%M %p')}}
+        </td>
+        {% endif %}
+        <td>{{thread.num_replies}}</td>
+        <td>{{thread.num_views}}</td>
+        {% if not thread.last_post %}
+        <td>&nbsp;</td>
+        {% else %}
+          {% set author = thread.last_post.author() %}
+          <td>
+            By {{lib.gravatar(author, size=16)}} {{lib.user_link(author)}}<br />on {{thread.last_post.timestamp.strftime('%a %b %d, %Y %I:%M %p')}}
+          </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>

@@ -1,0 +1,54 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% extends g.theme.master %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block header %}{{title}}{% endblock %}
+
+{% block extra_css %}
+  <style type="text/css">
+      .no-nbhds {
+          text-align: center;
+          font-style: italic;
+          margin: 5px;
+      }
+  </style>
+{% endblock %}
+
+{% block content %}
+    {{ text if text }}
+
+    <div class="neighborhoods">
+        {% for nbhd in neighborhoods %}
+            <div class="nbhd_holder bubble">
+                <div class="nbhd_icon">
+                    {% if nbhd.icon %}<a href="{{nbhd.url()}}"><img src="{{nbhd.url()}}icon" class="project_icon" alt="{{nbhd.name}} Logo"/> </a>
+                    {% else %}<a href="{{nbhd.url()}}"><div class="placeholder"></div></a>{% endif %}
+                </div>
+                <div class="nbhd_details">
+                    <div class="nbhd_name"><a href="{{nbhd.url()}}">{{nbhd.name}}</a></div>
+                    <div class="nbhd_count">{{nbhd.projects_count}}{% if nbhd.projects_count == 100 %}+{% endif %} Projects</div>
+                </div>
+            </div>
+        {% else %}
+            <div class="no-nbhds">No neighborhoods found</div>
+        {% endfor %}
+    </div>
+{% endblock %}

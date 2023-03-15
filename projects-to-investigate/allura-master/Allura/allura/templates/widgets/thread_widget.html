@@ -1,0 +1,73 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% import 'allura:templates/jinja_master/lib.html' as lib %}
+{% set primary_artifact = value.primary() %}
+<div>
+  <div class="comment-row">
+      {% if limit %}
+        {{widgets.page_list.display(limit=limit, page=page, count=count)}}
+      {% endif %}
+      <div id="comment">
+        {% if posts %}
+          {% for t in value.create_post_threads(posts) %}
+          <ul>
+            {{widgets.post_thread.display(value=t['post'], children=t['children'],
+                indent=0, show_subject=show_subject,
+                page=page, limit=limit, primary_artifact=primary_artifact)}}
+          </ul>
+          {% endfor %}
+        {% endif %}
+        {% if h.has_access(value, 'moderate')() %}
+          <div id="allow_moderate"></div>
+        {% endif %}
+      </div>
+      <div style="clear:both"></div>
+      {% if limit and count>limit %}
+      <div>
+        {{widgets.page_list.display(limit=limit, page=page, count=count)}}
+      </div>
+      {% endif %}
+      <div style="clear:both"></div>
+  </div>
+</div>
+{% if h.has_access(value, 'post')() %}
+  <div id="new_post_holder">
+    <span id="add_comment"></span>
+    <div class="comment-row" style="padding-top:10px;">
+      <div class="reply">
+        <div class="grid-2 tcenter">
+          <p class="gravatar">
+            {{lib.gravatar(c.user, size=48)}}<br>
+            <small>
+               {{lib.user_link(c.user)}}
+            </small>
+          </p>
+        </div>
+        <div class="grid-17">
+            {{widgets.edit_post.display(submit_text='Post', action=value.url() + 'post', primary_artifact=primary_artifact)}}
+        </div>
+      </div>
+    </div>
+  </div>
+{% elif c.user.is_anonymous() and h.is_allowed_by_role(value, 'post', '*authenticated', c.project)%}
+  <hr>
+  <p>
+    <a href="{{ tg.config.get('auth.login_url', '/auth/') }}">Log in</a> to post a comment.
+  </p>
+{% endif %}

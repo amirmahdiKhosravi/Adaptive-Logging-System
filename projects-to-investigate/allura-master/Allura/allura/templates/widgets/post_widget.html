@@ -1,0 +1,189 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% import 'allura:templates/jinja_master/lib.html' as lib %}
+{% set page = request.params.get('page','0') %}
+{% set limit = request.params.get('limit','0') %}
+{% set params_dict = {} %}
+{% if page != '0' %}
+    {% do params_dict.update({'page': page}) %}
+{% endif %}
+{%  if limit != '0' %}
+    {% do params_dict.update({'limit': limit}) %}
+{%  endif %}
+
+
+{% set shortlink_url = h.absurl(tg.url(request.path , params_dict) + '#' + value.slug) %}
+
+<div>
+  <div id="{{value.slug}}" class="discussion-post{%if value.is_meta %} meta_post{% endif %}">
+    {% set can_moderate_post = h.has_access(value, 'moderate')() %}  {# you might have 'moderate' perm in your on post #}
+    {% set can_moderate_thread = h.has_access(value.thread, 'moderate')() %} {# but not on the whole thread #}
+    {% if can_moderate_post %}
+    <div class="info grid-15 spam-present">
+      <span class="spam-text">Comment has been marked as spam.&nbsp;</span>
+      <form method="POST" action="{{value.url()+'moderate'}}">
+        <input type="hidden" name="undo" value="True"/>
+        <input type="hidden" name="prev_status" value="{{value.status}}">
+        <a href="" class="moderate_post little_link"><span>Undo</span></a>
+        {{lib.csrf_token()}}
+      </form>
+      {% if value.discussion and value.app_config %}{# avoid errors, when viewing old versions of comments (obscure, but has test coverage) #}
+      <br>
+      View and moderate
+      <a href="{{value.thread.discussion.url()}}moderate?username={{value.author().username}}&status=-">all "{{ value.discussion.name }}" comments posted by this user</a>
+      <br><br>
+      <a href="#" class="spam-all-block" data-user="{{ value.author().username }}" data-admin-url="{{ c.app.admin_url }}" data-discussion-url="{{value.thread.discussion.url()}}">
+          Mark all as spam, and block user from posting to "{{ value.app_config.options.mount_label }}"</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="comment-row">
+      <div class="grid-2 tcenter gravatar">
+       <p class="gravatar">
+        {% set size = value.parent and 32 or 48 %}
+        {{lib.gravatar(value.author(), size=size)}}
+       </p>
+      </div>
+      {% set pending = value.status == 'pending' %}
+      {% set current_reaction = h.get_current_reaction(value.react_users) %}
+      <div class="grid-16 post-content bubble" style="width: {{indent == 0 and 652 or (indent <= 40 and 642-indent*10 or 65)}}px;  {% if indent != 0 %} margin-right:0px {% endif %}">
+          <div class="header">
+            {{lib.user_link(value.author())}} - <i style="color: #777">{{lib.abbr_date(value.timestamp)}}</i>
+
+            <div class="tools">
+            {% if not c.user.is_anonymous() %}
+                <a href="#" id="react_{{value.slug.replace('/','_')}}" data-commentlink="{{value.url()}}" data-currentreact="{{ current_reaction }}" class="reaction-button icon btn ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"{%if value.status == 'pending'%} style="display:none"{%endif%}>
+                    <span><i class="fa fa-smile-o" aria-hidden="true"></i></span></a>
+            {% endif %}
+            {% if (h.has_access(value.thread, 'post')() and value.status == 'ok') or can_moderate_post %}
+                <a class="icon reply_post btn" href="#" style="" title="Reply" role="button"><span class="ui-button-text"><i class="fa fa-reply"></i></span></a>
+            {% endif %}
+            <a href="{{shortlink_url}}" title="Link" class="little_link shortlink icon btn ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"{%if value.status == 'pending'%} style="display:none"{%endif%}>
+              <span><i class="fa fa-link" aria-hidden="true"></i></span></a>
+
+            {% if can_moderate_post %}
+                <a href="#" title="Edit" class="icon btn ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only edit_post little_link"><span><i class="fa fa-pencil" aria-hidden="true"></i></span></a>
+            {% endif %}
+
+                {% if can_moderate_thread %}{# "def moderate" endpoint requires *thread* not just post perm #}
+                    {{widgets.moderate_post.display(value=value, action=value.url()+'moderate', status = value.status)}}
+                {%endif%}
+            </div>
+          </div>
+          <div class="display_post{% if pending and can_moderate_post %} moderate{% endif %}">
+          {% if pending and not can_moderate_post %}
+            <b>Post awaiting moderation.</b>
+          {% else %}
+            {% if show_subject %}
+                <b>{{value.subject or '(no subject)'}}<br/></b>
+            {% endif %}
+
+            <div{% if can_moderate_post %} class="active-md" data-markdownlink="{{value.url()}}" {% endif %}>{{g.markdown.cached_convert(value, 'text')|safe}}</div>&nbsp;
+            <div class='reactions{% if not c.user.is_anonymous() %} reactions-active{% endif %}' style='user-select: none; cursor: default'>
+              {% for reaction in value.react_counts %}<div class="reaction{% if current_reaction == reaction %} reaction-current{% endif %}" data-react="{{ reaction }}"><div class="emoj">{{ h.emojize(reaction) }}</div><div class="emoj-count">{{ value.react_counts[reaction] }}</div></div>{% endfor %}
+            </div>
+            {{lib.related_artifacts(value)}}
+            {% if value.edit_count %}
+                <br><small>Last edit: {{value.last_edit_by().display_name}} {{h.ago(value.last_edit_date)}}</small>
+            {% endif %}
+          {% endif %}
+        </div>
+        {% if can_moderate_post %}
+        <div class="edit_post_form reply" style="display:none; padding-left: 5px;">
+            {{widgets.edit_post.display(value=value, submit_text='Post', action=value.url(), primary_artifact=primary_artifact)}}
+        </div>
+        <div class="add_attachment_form" style="display:none; clear: both; overflow: auto;">
+            {{widgets.attach_post.display(value=value, action=value.url() + 'attach')}}
+        </div>
+        {% endif %}
+        {% if value.attachments and (not pending or can_moderate_post) %}
+        <div class="attachment_holder">
+          {% for att in value.attachments %}
+            <div class="attachment_item">
+                {% if att.is_image() %}
+                    <div class="attachment_thumbnail">
+                        <a class="lightbox" href="{{att.url()}}">
+                            <img src="{{att.url()}}/thumb" alt="Thumbnail"/>
+                        </a>
+                    </div>
+                 <div class="attachment-name">
+                    <i class="fa fa-picture-o" aria-hidden="true"></i>
+                {% else %}
+                <div class="attachment-name">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                {% endif %}
+                    <a href="{{att.url()}}">{{att.filename}}</a>
+                </div>
+                 <div class="attachment_toolbar">
+                    <form method="POST" action="{{att.url()}}">
+                        {% if can_moderate_post %}
+                            <a href="javascript: void(0)"  onclick="$(this).closest('form').submit();" title="Remove Attachment" class="btn ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">
+                                <span><i class="fa fa-trash-o" aria-hidden="true"></i></span>
+                            </a>
+                        {% endif %}
+
+                        <a href="{{att.url()}}" download title="Download File" class="btn ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only">
+                            <span><i class="fa fa-download" aria-hidden="true"></i></span>
+                        </a>
+                        <input type="hidden" name="delete" value="True">
+                        {{lib.csrf_token()}}
+                    </form>
+                </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        </div>
+
+      <div class="shortlink_popup modal" style="display: none">
+        {{ g.icons['close'].render(extra_css='close') }}
+        <div>If you would like to refer to this comment somewhere else in this project, copy and paste the following link:</div>
+        <input type="text" style="width:100%;" value="{{shortlink_url}}">
+      </div>
+    </div>
+    <ul>
+      <li>
+        {% if h.has_access(value.thread, 'post')() %}
+        <div class="comment-row reply_post_form" style="display:none">
+          <div class="reply">
+            <div class="grid-2 tcenter">
+              <p class="gravatar">
+                {{lib.gravatar(c.user, size=32)}}<br>
+                <small>
+                    {{lib.user_link(c.user)}}
+                </small>
+              </p>
+            </div>
+            <div class="grid-14 bubble" style="width: {{indent <= 40 and 625-indent*10 or 225}}px">
+              {{widgets.edit_post.display(
+                submit_text='Post Reply',
+                action=value.url()+'reply',
+                value=dict(
+                    text='',
+                    subject=value.reply_subject()),
+                primary_artifact=primary_artifact,
+              )}}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,185 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% import 'allura:templates/jinja_master/lib.html' as lib with context %}
+
+
+<form method="POST" action="update" enctype="multipart/form-data" id="metadata_form" class="row align-justify">
+  <div class="column small-12 medium-6">
+    {%if not c.project.is_user_project %}
+        <div class="field">
+        {{ widget.display_label(widget.fields.name) }}
+        {{ widget.display_field(widget.fields.name) }}
+        </div>
+        <div class="field">
+            <label for="shortname">Unixname</label>
+            <input id="shortname" type="text" disabled="disabled" value="{{c.project.shortname}}">
+        </div>
+
+        <div class="field">
+        {{ widget.display_label(widget.fields.external_homepage) }}
+        {{widget.display_field(widget.fields.external_homepage) }}
+        </div>
+
+        <div class="field">
+        {{ widget.display_label(widget.fields.video_url) }}
+        {{widget.display_field(widget.fields.video_url) }}
+        </div>
+    {% endif %}
+
+
+
+    <div class="summary-fields field">
+        {{ widget.display_label(widget.fields.summary) }}
+        {{widget.display_field(widget.fields.summary) }}
+        <br>
+    </div>
+
+    {% if not c.project.is_user_project %}
+        <div class="description-fields field">
+        {{ widget.display_label(widget.fields.short_description) }}
+        {{ widget.display_field(widget.fields.short_description) }}
+        </div>
+
+        <div id="features" class="new-visual-group">
+          {{ widget.display_label(widget.fields.features) }}
+          {{ widget.display_field(widget.fields.features) }}
+        </div>
+
+        {% if tg.config.get('support_tool_choices') %}
+        <div class="support-page-fields new-visual-group">
+            Preferred Support Page (for users of your project):<br>
+            {% if request.validation.errors.get('support_page_url') %}
+                <div class="error">{{request.validation.errors.get('support_page_url')}}</div>
+            {% endif %}
+
+            <input name="support_page" type="radio" value=""{% if value.support_page == '' %} checked{% endif %} id="support_page_none">
+            <label for="support_page_none">None</label><br>
+            {% for ac in c.project.app_configs %}
+              {% if ac.tool_name.lower() in tg.config['support_tool_choices'].split() %}
+                <input name="support_page" type="radio" value="{{ac.options.mount_point}}" id="support_page_{{ac.options.mount_point}}"
+                       {% if value.support_page == ac.options.mount_point %} checked{% endif %}>
+                <label for="support_page_{{ac.options.mount_point}}">{{ac.options.mount_label}}</label><br>
+              {% endif %}
+            {% endfor %}
+
+            <input name="support_page" type="radio" value="_members" {% if value.support_page == '_members' %} checked{% endif %} id="support_page_members">
+            <label for="support_page_members">Contact project admins</label><br>
+            <input name="support_page" type="radio" value="_url" id="support_page_url_cb"
+                   {% if value.support_page == '_url' %} checked{% endif %}>
+            <label for="support_page_url_cb">URL: </label>
+            <input type="text" name="support_page_url" value="{{value.support_page_url}}" style="width: 70%"><br>
+        </div>
+        {% endif %}
+
+        <div class="social-media-fields new-visual-group">
+            <div class="field">
+                {{ widget.display_label(widget.fields.twitter_handle) }}
+                {{widget.display_field(widget.fields.twitter_handle) }}
+            </div>
+
+            <div class="field">
+            {{ widget.display_label(widget.fields.facebook_page) }}
+            {{widget.display_field(widget.fields.facebook_page) }}
+            </div>
+            <div class="field">
+            {{ widget.display_label(widget.fields.instagram_page) }}
+            {{ widget.display_field(widget.fields.instagram_page) }}
+            </div>
+            <div class="field">
+            {{ widget.display_label(widget.fields.fediverse_address) }}
+            {{ widget.display_field(widget.fields.fediverse_address) }}
+            </div>
+        </div>
+
+        {% if c.project.neighborhood.features['google_analytics'] %}
+        <div class="field new-visual-group">
+        {{ widget.display_label(widget.fields.tracking_id) }}
+        {{ widget.display_field(widget.fields.tracking_id) }}
+        </div>
+        {% endif %}
+    {% endif%}
+    {% block fields_column1_end -%}
+    {% endblock %}
+  </div>
+
+  <div class="column small-12 medium-5">
+    <label>{% if c.project.is_user_project %}Profile Image{% else %}Project Logo{% endif %}:</label>
+    <div id="project-icon" class="viewing">
+      {% if c.project.icon %}
+        <div class="viewer" style="overflow: auto">
+          <img {{ lib.project_icon_srcs(c.project) }} style="float:left; margin-right: 1em;" alt="">
+          {{ g.icons['edit'].render(id='edit-icon', style='display:inline-block;margin-top:15px') }}
+          {{ g.icons['delete'].render(id='delete-icon', style='display:inline-block;margin-top:15px') }}
+        </div>
+      {% else %}
+        <div class="viewer">
+          No {% if c.project.is_user_project %}user{% endif %} icon.
+          {{ g.icons['edit'].render(id='edit-icon', title='Upload one', show_title=True) }}
+        {% if c.project.is_user_project and h.asbool(tg.config.get('use_gravatar')) %}<br><small>
+            Or a  <a href="http://gravatar.com/">gravatar.com</a> image will be used if available.</small>{% endif %}
+        </div>
+      {% endif %}
+      <div id="project-icon-upload" class="hidden">
+          {{widget.display_field(widget.fields.icon)}}
+          <input type="submit" value="Save" name="save" style="float: none" />
+          <br><small>(best if square & hi-res. JPG, GIF, or PNG files expected.)</small>
+      </div>
+    </div>
+
+    {%if c.project.neighborhood.name != 'Users' or not value.is_root%}
+    <div id="project-status">
+        {% set proj_text = 'Project' if value.is_root else 'Subproject' %}
+        {{proj_text}} Status:
+        <div>
+            {% if request.validation.errors.get('moved_to_url') %}
+                <div class="error">{{request.validation.errors.get('moved_to_url')}}</div>
+            {% endif %}
+            <input name="removal" type="radio" value="" id="removal_active_cb"
+                   {% if value.removal == '' %} checked{% endif %}>
+            <label for="removal_active_cb">Active {{proj_text}}</label>
+            <br>
+            <input name="removal" type="radio" value="moved" id="removal_moved_cb"
+                   {% if value.removal == 'moved' %} checked{% endif %}>
+            <label for="removal_moved_cb">Moved {{proj_text}} to: </label>
+            <input type="text" name="moved_to_url" value="{{value.moved_to_url}}" style="width: 60%" placeholder="http://new-website.com/example">
+            <br>
+            <input name="removal" type="radio" value="abandoned" id="removal_abandoned_cb"
+                   {% if value.removal == 'abandoned' %} checked{% endif %}>
+            <label for="removal_abandoned_cb">Abandoned {{proj_text}}</label>
+            {% if allow_project_delete or not value.is_root %}
+            <br>
+            <input name="removal" type="radio" value="deleted" id="removal_delete_cb"
+                   {% if value.removal == 'deleted' %} checked{% endif %}>
+            <label for="removal_delete_cb">Delete{% if value.removal == 'deleted' %}d{% endif %} {{proj_text}}</label>
+            {% endif %}
+            {% block status_choices_end -%}
+            {% endblock %}
+        </div>
+    </div>
+    {% endif%}
+  </div>
+  <hr class="column small-12" style="margin-top: 1em; margin-bottom: 1em;">
+  <div class="column small-12">
+    <input type="submit" value="Save">
+  </div>
+  {{lib.csrf_token()}}
+</form>
+
+{% block extra_css %}
+{% endblock %}

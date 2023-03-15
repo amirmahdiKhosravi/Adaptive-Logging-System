@@ -1,0 +1,141 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% from 'allura:templates/jinja_master/lib.html' import canonical_tag %}
+{% extends g.theme.master %}
+
+{% block head %}
+    {{ canonical_tag() }}
+{% endblock %}
+
+{% if hasattr(c.app, 'repo') %}
+    {% set repo = c.app.repo %}
+{% else %}
+    {% set repo = None %}
+{% endif %}
+
+{% if repo and repo.status != 'ready' %}
+    {% set hide_left_bar = True %}
+{% endif %}
+
+{% set clone_categories = repo.clone_command_categories(anon=not h.has_access(c.app, 'write')()) %}
+
+{% block extra_css %}
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="{{c.app.url}}feed.rss"/>
+    <link rel="alternate" type="application/atom+xml" title="Atom" href="{{c.app.url}}feed.atom"/>
+    <style type="text/css">
+        #access_urls .btn-set {
+            {# we need a min-width to prevent this block from wrapping, but its size can vary, so we have to do this ugly guesstimate #}
+            min-width: {{ clone_categories|join('', attribute='name')|length + clone_categories|length + 1}}em;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">(function() {
+  $('#access_urls .btn').click(function(evt){
+    evt.preventDefault();
+    var parent = $(this).parents('.btn-bar');
+    var checkout_cmd = $(this).attr('data-url');
+    $(parent).find('input').val(checkout_cmd);
+    $(parent).find('span').text($(this).attr('title')+' access');
+    $(this).parent().children('.btn').removeClass('active');
+    $(this).addClass('active');
+    if (checkout_cmd.indexOf(' http://') !== -1 || checkout_cmd.indexOf(' https://') !== -1 ) {
+      $('#http-2fa-msg').show();
+    } else {
+      $('#http-2fa-msg').hide();
+    }
+  });
+  $('#access_urls .btn').first().click();
+
+  {% if repo %}
+  var repo_status = document.getElementById('repo_status');
+  // The repo_status div will only be present if repo.status != 'ready'
+  if (repo_status) {
+    $('.spinner').show()
+    var delay = 500;
+    function check_status() {
+        $.get('{{repo.url()}}status', function(data) {
+            if (data.status === 'ready') {
+                $('.spinner').hide()
+                $('#repo_status h2').html('Repo status: ready. <a href="." rel="nofollow">Click here to refresh this page.</a>');
+            }
+            else {
+                $('#repo_status h2 span').html(data.status);
+                if (delay < 60000){
+                    delay = delay * 2;
+                }
+                window.setTimeout(check_status, delay);
+            }
+        });
+    }
+    var status_checker = window.setTimeout(check_status, delay);
+    {% endif %}
+  }
+}());
+</script>
+{% endblock %}
+
+{% block before_content %}
+  {% if repo and repo.status != 'ready' %}
+    <div id="repo_status">
+        <img src="{{g.forge_static('images/spinner.gif')}}" class="spinner" style="display:none"/>
+        <h2>Repo status: <span>{{repo.status}}</span>...</h2>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% macro clone_info(repo) %}
+  {% if repo %}
+    <div id="access_urls" class="btn-bar grid-19">
+      {% if clone_categories|length > 1 %}
+        <div class="btn-set{% if clone_categories|length == 2 %} duo{% endif %}">
+          {% for clone_cat in clone_categories %}
+            <a class="btn" data-url="{{repo.clone_command(clone_cat['key'])}}" title="{{ clone_cat.get('title', '') }}">
+              {{ clone_cat['name'] }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <span>{{ clone_categories[0]['title'] }} access</span>
+      <div>
+        <input id="access_url" readonly type="text"
+             class="selectText"
+             value="{{repo.clone_command(clone_categories[0]['key'])}}"/>
+      </div>
+    </div>
+    {% if not c.user.is_anonymous() and c.user.get_pref('multifactor') and h.has_access(c.app, 'write') %}
+        <div id="http-2fa-msg" class="grid-19 info" style="display: none">
+        When using HTTPS access with two-factor auth, you will need to enter your password and current token together as
+        the password (e.g. "p4ssw0Rd123456")
+        </div>
+    {% endif %}
+    <hr>
+  {% endif %}
+{% endmacro %}
+
+{% macro commit_labels(commit) %}
+  {% set branches, tags = commit.symbolic_ids %}
+  {% for b in branches %}
+    <span class="scm-branch-label">{{b}}</span>
+  {% endfor %}
+  {% for t in tags %}
+    <span class="scm-tag-label">{{t}}</span>
+  {% endfor %}
+{% endmacro %}

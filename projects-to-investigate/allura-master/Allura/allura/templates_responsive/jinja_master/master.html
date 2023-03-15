@@ -1,0 +1,168 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+<!DOCTYPE html>
+<!-- Server: {{g.server_name}} -->
+{% import 'allura:templates/jinja_master/lib.html' as lib with context %}
+{% if g.theme.jinja_macros %}
+    {% import g.theme.jinja_macros as theme_macros with context %}
+{% endif %}
+{% do g.register_forge_js('js/jquery-3.6.0.min.js', location='head_js') %}
+{% do g.register_forge_js('js/jquery.cookie-1.4.1.js', location='head_js') %}
+{% do g.register_forge_js('js/foundation.min.js', location='head_js', compress=False) %}
+{% do g.register_forge_js('js/jquery.notify.js') %}
+{% do g.register_forge_js('js/jquery.tooltipster.js') %}{#  TODO: use foundation #}
+{% do g.register_forge_js('js/twemoji.min.js') %}
+{% do g.register_forge_js('js/allura-base.js') %}
+{% do g.register_forge_js('js/checklist.js') %}
+{% do g.register_forge_css('css/forge/hilite.css') %}
+{% do g.register_forge_css('css/forge/tooltipster.css') %}{#  TODO: use foundation #}
+{% do g.register_forge_css('css/font-awesome.min.css', compress=False) %}
+{% do g.theme.require() %}
+{% do g.register_forge_js('js/admin_modal.js') %}
+{% do g.register_js('js/jquery.lightbox_me.js') %}
+{% if h.has_access(c.project, 'admin')() %}
+    {# this would be better placed in top_nav.html but that file is included later so its too late for it to register
+       any css.  (Unlike other html files which are the top-level file and extend this master.html) #}
+    {% do g.register_forge_css('css/navbar.css') %}
+{% endif %}
+{% do g.register_forge_js('js/memorable.js') %}
+{% do g.resource_manager.register_widgets(c) %}
+
+<html lang="en" class="no-js">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>{% block title %}Your title goes here{% endblock %}</title>
+    {{ theme_macros.extra_header(g.theme_href('')) }}
+    {% for blob in g.resource_manager.emit('head_css') %}
+        {{ blob }}
+    {% endfor %}
+    {% for blob in g.resource_manager.emit('head_js') %}
+        {{ blob }}
+    {% endfor %}
+
+    {% if c.project and c.project.neighborhood.css %}
+        <style type="text/css">
+            {{c.project.neighborhood.get_custom_css()|safe}}
+        </style>
+    {% elif neighborhood and neighborhood.css %}
+        <style type="text/css">
+            {{neighborhood.get_custom_css()}}
+        </style>
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+    <style>.{{ g.antispam.honey_class }} {
+        display: none
+    }</style>
+
+    {% block head %}
+    {% endblock %}
+    {{ g.analytics.display() }}
+    {% block head_bottom -%}
+    {% endblock %}
+</head>
+
+<body{% block body_attrs %}{% endblock %} class="{% block body_css_class %}{% endblock %}" id="forge">
+{% block body_top_js %}
+    {% for blob in g.resource_manager.emit('body_top_js') %}
+        {{ blob }}
+    {% endfor %}
+{% endblock %}
+
+{% set flash = tg.flash_obj.render('flash', use_js=False) %}
+
+{% call theme_macros.all_content_wrapper(g.login_url, '/auth/logout') %}
+    {{ theme_macros.header(g.login_url, '/auth/logout') }}
+    {{ theme_macros.site_notification() }}
+    {% block masthead %}{% endblock %}
+    <section id="page-body" class="{{ g.document_class(neighborhood) }} {% block page_body_classes %}{% endblock %}">
+        {% if c.project and c.project.is_nbhd_project %}
+            {% set neighborhood=c.project.neighborhood %}
+            {% include 'allura:templates_responsive/jinja_master/neigh_nav_menu.html' with context %}
+        {% else %}
+            {% block nav_menu %}
+                {% include g.theme.nav_menu %}
+            {% endblock %}
+        {% endif %}
+        {% block top_nav %}
+            {% include g.theme.top_nav %}
+        {% endblock %}
+        <div id="content_base" class="row">
+            {% block content_base %}
+                {% if not hide_left_bar %}
+                    {% block sidebar_menu %}
+                        {% include g.theme.sidebar_menu %}
+                    {% endblock %}
+                {% endif %}
+                <div class="column">
+                    <h2 class="{% block header_classes %} title{% endblock %}">
+                        <span>{% block header %}{% endblock %}</span>
+                        <!-- actions -->
+                        <small>
+                            {% block actions %}{% endblock %}
+                        </small>
+                        <!-- /actions -->
+                    </h2>
+                    {% block edit_box %}{% endblock %}
+                    <div>
+                        {% block before_content %}{% endblock %}
+                        {% block content %}{% endblock %}
+                    </div>
+                    {% if show_right_bar %}
+                        <div class="columns">
+                            {% block right_content %}{% endblock %}
+                        </div>
+                    {% endif %}
+                    {% block after_content %}{% endblock %}
+                </div>
+            {% endblock %}
+        </div>
+    </section>
+    {{ theme_macros.footer(g.year(), g.theme_href('')) }}
+{% endcall %}
+
+<div id="messages">
+    {% for n in h.pop_user_notifications() %}
+        <section class="message {{ n.subject or 'info' }}">
+            <header>Notification:</header>
+            <div class="content">{{ n.text }}</div>
+        </section>
+    {% endfor %}
+</div>
+{% if c.show_login_overlay %}
+    {{ theme_macros.login_overlay() }}
+{% endif %}
+{% for blob in g.resource_manager.emit('body_js') %}
+    {{ blob }}
+{% endfor %}
+{% for blob in g.resource_manager.emit('body_js_tail') %}
+    {{ blob }}
+{% endfor %}
+{% block extra_js %}{% endblock %}
+{% if neighborhood %}
+    {{ neighborhood.site_specific_html | safe }}
+{% elif c.project.neighborhood %}
+    {{ c.project.neighborhood.site_specific_html | safe }}
+{% endif %}
+{{ theme_macros.custom_js() }}
+{% if flash %}
+    <script type="text/javascript">{{ flash | safe }}</script>
+{% endif %}
+</body>
+</html>

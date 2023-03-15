@@ -1,0 +1,81 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% extends 'forgewiki:templates/wiki/master.html' %}
+{% from 'allura:templates/jinja_master/lib.html' import abbr_date with context %}
+{% import 'allura:templates/jinja_master/dialog_macros.html' as dialog_macros with context %}
+{% import 'allura:templates/jinja_master/lib.html' as lib with context %}
+{% block title %}{{c.project.name}} / {{c.app.config.options.mount_label}} / {{title}}{% endblock %}
+
+{%  block head %}
+    {{ super() }}
+    <meta name="robots" content="noindex,follow" />
+    {{ lib.pagination_meta_tags(request, page, count, limit) }}
+{% endblock %}
+
+{% block header %}
+    {{title}}
+{% endblock %}
+
+{% block actions %}
+  {{ g.icons['eye'].render(href='.', title='View Page') }}
+{% endblock %}
+
+{% block wiki_content %}
+{{c.page_size.display(limit=limit,count=count,page=page)}}
+<form method="get" action="diff">
+  <div class="grid-19"><input type="submit" value="Compare revisions"/></div>
+  <div style="clear:both"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>V1</th>
+        <th>V2</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pages %}
+        <tr data-version="{{ p.version }}" data-username="{{ p.author.username }}">
+          <td>
+              <a href="./?version={{ p.version }}">{{ p.version }}</a> by
+              <a href="{{ h.username_project_url(p.author.username) }}" class="user-mention">{{ p.author.username }}</a>
+          </td>
+          <td>{{abbr_date(p.mod_date)}}</td>
+          <td><input name="v1" type="radio" value="{{p.version}}"/></td>
+          <td><input name="v2" type="radio" value="{{p.version}}"/></td>
+          <td class="tright">
+            {% if not loop.first and h.has_access(p, 'edit')() %}
+              {{ g.icons['revert'].render(
+                  extra_css='post-link',
+                  title='Revert to version {}'.format(p.version),
+                  **{'data-dialog-id': p.version}) }}
+              {{ dialog_macros.revert_confirmation_dialog(p.version) }}
+            {% endif %}
+            {{ g.icons['eye'].render(href='./?version={}'.format(p.version), title='View Revision') }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
+{{c.page_list.display(limit=limit, page=page, count=count)}}
+{{c.confirmation.display(content='')}}
+{% endblock %}

@@ -1,0 +1,50 @@
+<!--!
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-->
+<div class="{{ container_cls }}" data-name="{{ name }}">
+   <!-- We need "overflow:auto" for sortable.js to properly work in Firefox http://stackoverflow.com/a/3393282/4640690 -->
+   <div>{% if show_msg %}<p
+          class="{{ msg_cls }}"
+          data-empty-message="{{ empty_msg }}"
+          data-nonempty-message="{{ nonempty_msg }}"
+          />{% endif %}</div>
+  {% if show_button %}{{ widget.button.display() }}{% endif %}
+  <br style="clear:both"/>
+  <div class="{{ flist_cls }}">
+  {% set id = 0 %}
+    {% for i in range(repetitions) %}
+      {% set ctx = widget.context_for(i) %}
+        {% if request.validation.values %}
+            {% if 'features-' ~ i ~ '.feature' in request.validation.values %}
+                {% set ctx = widget.context_for(i) %}
+                {% do ctx.update({'value': {'feature': request.validation.values.get('features-' ~ i ~ '.feature')} }) %}
+                {{ widget.field.display(css_class=field_cls, **ctx) }}
+            {% endif %}
+        {% else %}
+            {{ widget.field.display(css_class=field_cls, **ctx) }}
+        {% endif %}
+    {% endfor %}
+    {% if extra_field_on_focus_name %}
+        {% if not request.validation.values %}
+          {% set ctx = widget.context_for(repetitions) %}
+          {{ widget.field.display(css_class=field_cls, **ctx) }}
+        {% endif %}
+    {% endif %}
+    {{ widget.field.display(name=name+'#', css_class=stub_cls) }}
+  </div>
+</div>

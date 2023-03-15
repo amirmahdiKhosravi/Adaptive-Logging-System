@@ -1,0 +1,247 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% set hide_left_bar = True %}
+{% extends "allura:templates/user_account_base.html" %}
+
+{% block title %}{{c.user.username}} / Preferences{% endblock %}
+
+{% block header %}User Preferences for {{c.user.username}}{% endblock %}
+
+{% block content %}
+{% do g.register_js('js/jquery.lightbox_me.js') %}
+  {{ super() }}
+  <div class="grid-23">
+    <h2>Preferences</h2>
+    {% block info %}
+    <fieldset class="preferences">
+      <legend>Username: {{ c.user.username }}</legend>
+      <p><a href="{{ c.user.private_project().url() }}">My profile and my projects</a></p>
+      <p><a href="{{ c.user.url() }}activity/">Activity I follow</a></p>
+      <p><a href="{{ c.user.private_project().url() }}admin/overview">Set avatar icon</a></p>
+      {% if h.asbool(tg.config.get('auth.allow_user_to_disable_account', False)) %}
+        <p><a href="/auth/disable">Disable account</a></p>
+      {% endif %}
+    </fieldset>
+    {% endblock info %}
+
+    {% block edit_prefs_form %}
+      {% if h.asbool(tg.config.get('auth.allow_edit_prefs', True)) %}
+        <fieldset class="preferences">
+          <legend>General Settings</legend>
+          <form action="update" method="POST">
+            <label class="grid-4">Display Name</label>
+            <div class="grid-18">
+              <input name="preferences.display_name" value="{{c.user.display_name}}" type="text">
+            </div>
+            <label class="grid-4">Page Size</label>
+            <div class="grid-18">
+              <select name="preferences.results_per_page">
+                {% for per_page in [25, 50, 100, 250] %}
+                    <option {% if per_page == c.user.preferences.results_per_page %}selected="selected"{% endif %}
+                       value="{{per_page}}">{{per_page}}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="grid-22">
+              {{lib.submit_button('Save')}}
+            </div>
+            {{lib.csrf_token()}}
+          </form>
+        </fieldset>
+
+        <fieldset class="preferences">
+          <legend>Email addresses</legend>
+          <form action="update_emails" method="post" name="update-email">
+            {% include 'allura:templates/update_emails_form.html' %}
+            {{lib.hidden_field('password', '')}}
+          </form>
+        </fieldset>
+
+      <!-- popup -->
+      <form class="cur_password" style="display:none">
+        <div class="grid-13">
+          <p>{{lib.password_field('current_password', 'Current password:')}}</p>
+        </div>
+        <div class="grid-13">
+          <p>
+          <input type="submit" name="enter_pass_submit" value="Ok">
+          <input type="submit" name="cancel_lightbox" value="Cancel">
+          </p>
+        </div>
+      </form>
+      {{c.enter_password.display(content='<h1>Enter password</h1>')}}
+      <!-- end popup -->
+
+      {% endif %}  {# allow_edit_prefs #}
+    {% endblock edit_prefs_form %}
+
+
+    {% block password_change_form %}
+      {% if h.asbool(tg.config.get('auth.allow_password_change', True)) %}
+        <fieldset class="preferences">
+          <legend>Change Password</legend>
+          {{ c.password_change_form.display() }}
+        </fieldset>
+      {% endif %}
+    {% endblock %}
+
+    {% block multifactor %}
+      {% if h.asbool(tg.config.get('auth.multifactor.totp', False)) %}
+        <fieldset class="preferences multifactor">
+            <legend>Multifactor Authentication</legend>
+            <p>Multifactor authentication is currently
+            {% set user_multifactor = c.user.get_pref('multifactor') %}
+            {% if user_multifactor %}
+                <strong style="color:green">enabled</strong>
+            {%- else -%}
+                <strong style="color:red">disabled</strong>
+            {%- endif -%}
+            .
+            </p>
+            <p><b class="fa fa-cog"></b> <a href="totp_new">
+                {% if user_multifactor %}
+                    Regenerate multifactor key (e.g. for a new phone).
+                {% else %}
+                    Set up multifactor authentication.
+                {% endif %}
+            </a></p>
+            {% if user_multifactor %}
+                <p><b class="fa fa-qrcode"></b> <a href="totp_view">View existing configuration</a></p>
+                <p><b class="fa fa-life-ring"></b> <a href="multifactor_recovery">View recovery codes</a></p>
+                <form action="multifactor_disable" id="multifactor_disable" method="post">
+                <p>
+                    <b class="fa fa-trash"></b> <a href="#" class="disable">Disable</a>
+                </p>
+                {{ lib.csrf_token() }}
+                </form>
+            {% endif %}
+        </fieldset>
+      {% endif %}
+    {% endblock %}
+
+    {% block upload_key_form %}
+      {% if h.asbool(tg.config.get('auth.allow_upload_ssh_key', False)) %}
+        <fieldset class="preferences">
+          <legend>Upload ssh public key</legend>
+          {{ c.upload_key_form.display() }}
+        </fieldset>
+      {% endif %}
+    {% endblock %}
+
+    {% block user_messages_form %}
+      {% if h.asbool(tg.config.get('auth.allow_user_messages_config', True)) %}
+        <fieldset class="preferences">
+          <legend>User Messages</legend>
+          <form method="POST" action="user_message">
+              <input type="checkbox" id="allow_user_messages" name="allow_user_messages" {% if not c.user.get_pref('disable_user_messages') %} checked {% endif %}>
+              <label for="allow_user_messages">Allow users to send me messages</label>
+              <br><br>
+              <input class="submit" type="submit" value="Save">
+              {{ lib.csrf_token() }}
+          </form>
+        </fieldset>
+      {% endif %}
+    {% endblock %}
+  </div>
+{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+  .pad hr {
+    margin: 15px 10px;
+    width: 860px;
+    padding: 0;
+    border: 0;
+  }
+  .multifactor .fa {
+      font-size: 300%;
+      vertical-align: middle;
+      margin-right: 5px;
+      /* icons aren't all the same width :( */
+      width: 1em;
+      text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+  <script type="text/javascript">
+      $(function() {
+          $('.multifactor .disable').click(function(e){
+              var ok = confirm('Are you sure you want to disable multifactor authentication?');
+              if(ok) {
+                  $(this).closest('form').submit();
+              }
+              e.preventDefault();
+          });
+      });
+  </script>
+  {% if h.asbool(tg.config.get('auth.allow_edit_prefs', True)) %}
+  {# js to ask for a current password on the email form #}
+  <script type="text/javascript">
+      $(function() {
+
+        function launch() {
+          var enter_password_popup = $('#lightbox_enter_password');
+          var enter_password_form = $('.cur_password');
+
+          enter_password_popup.append(enter_password_form.show());
+          enter_password_popup.lightbox_me({
+            onLoad: function() {
+            $('.cur_password').find('input:first').focus();
+            }
+          });
+        };
+
+        $("input[name='enter_pass_submit']").click(function (e) {
+          $("input[name='password']").val(
+              $("input[name='current_password']").val()
+            );
+          $("form[name='update-email']").submit();
+          e.preventDefault();
+        });
+
+        $("input[name='cancel_lightbox']").click(function(){
+          $('.cur_password').trigger('close');
+          return false;
+        });
+
+        $("input[name='new_addr.claim'], input[name='addr-save']").click(function(e) {
+          if ($("input[name='password']").val() == ''){
+            e.preventDefault();
+          }
+          if ($(this).attr('name') == 'addr-save' || $("input[name='new_addr.addr']").val().length != 0) {
+            launch();
+          }
+        });
+
+        $('input:submit', ".addr-delete").click(function(e) {
+          if ($("input[name='password']").val() == ''){
+            e.preventDefault();
+          }
+          $('input:hidden', ".addr-delete").val("");
+          var attr_del = $(this).attr('name')
+          $(document.getElementById(attr_del)).val("1");
+          launch();
+        });
+      });
+  </script>
+  {% endif %}
+ {% endblock %}

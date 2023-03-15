@@ -1,0 +1,60 @@
+ActivityStream
+beautifulsoup4
+Beaker
+cchardet
+colander
+cryptography
+decorator
+EasyWidgets
+# https://github.com/carpedm20/emoji/issues/191
+emoji
+feedgenerator
+feedparser
+FormEncode
+GitPython
+html5lib
+Jinja2
+Markdown==3.3.7
+markdown-checklist
+MarkupSafe
+Ming
+oauthlib
+paginate
+Paste
+PasteDeploy<3
+PasteScript
+Pillow
+# profanity filter for feedback
+profanityfilter
+Pygments
+pymongo
+Pypeline[creole,markdown,textile,rst]
+pysolr
+python-dateutil
+python-magic
+python-oembed
+pytz
+qrcode
+regex-as-re-globally
+requests
+requests-oauthlib
+# for taskd proc name switching
+setproctitle
+six
+TimerMiddleware
+TurboGears2
+WebHelpers2
+WebOb
+werkzeug
+wrapt
+# testing
+mock
+ruff
+testfixtures
+WebTest
+pytest
+pytest-xdist
+pytest-sugar
+
+# deployment
+gunicorn

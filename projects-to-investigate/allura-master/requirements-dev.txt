@@ -1,0 +1,11 @@
+# development-only dependencies
+# nothing needed at runtime or for tests
+
+pip-tools
+q
+sphinx-argparse
+sphinx-rtd-theme
+sphinxcontrib-programoutput
+coverage
+pycodestyle
+pyflakes

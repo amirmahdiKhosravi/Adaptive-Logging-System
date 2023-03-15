@@ -1,0 +1,71 @@
+{#-
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+-#}
+{% extends 'allura:templates/repo/repo_master.html' %}
+{% import 'allura:templates/jinja_master/lib.html' as lib with context %}
+{% set status = request.params.get('status' , '') %}
+
+{% block title %}
+  {{c.project.name}} / {{c.app.config.options.mount_label}} / Merge Requests
+{% endblock %}
+
+{% block header %}{{c.app.config.options.mount_label}} Merge Requests{% endblock %}
+{% block content %}
+  <div class="filter-container">
+    <form method="GET" action=".">
+        <div class="btn-set">
+            <button type="button" class="btn duo joined"><i class="fa fa-filter" aria-hidden="true"></i></button>
+            <button type="submit" class="btn duo joined {% if status == 'all' %}active{% endif %}" name="status" value="all">All</button>
+            <button type="submit" class="btn duo joined {% if status == 'open' or status == '' %}active{% endif %}" style="color:green" name="status" value="open">Open</button>
+            <button type="submit" class="btn duo joined {% if status == 'rejected' %}active{% endif %}" style="color:red" name="status" value="rejected">Rejected</button>
+            <button type="submit" class="btn duo joined {% if status == 'merged' %}active{% endif %}" style="color:DeepSkyBlue" name="status" value="merged">Merged</button>
+        </div>
+    </form>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Status</th>
+        <th>Summary</th>
+        <th>Repository</th>
+        <th>Creator</th>
+        <th>Created</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td><a href="{{req.request_number}}/" rel="nofollow">{{req.request_number}}</a></td>
+        <td><a href="{{req.request_number}}/" rel="nofollow">{{req.status}}</a></td>
+        <td><a href="{{req.request_number}}/" rel="nofollow">{{req.summary}}</a></td>
+        <td>{% if req.downstream_repo %}
+          <a href="{{req.downstream_url}}" rel="nofollow">{{req.downstream_url}}</a>
+        {% else %}
+          <i>(deleted)</i>
+        {% endif %}</td>
+        <td> {{ lib.user_link(req.creator,nofollow=True) }}</td>
+        <td>{{lib.abbr_date(req.created)}}</td>
+        <td>{{lib.abbr_date(req.mod_date)}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
