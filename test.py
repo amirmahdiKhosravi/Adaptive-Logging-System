@@ -33,6 +33,8 @@ t1.join()
 # wait until thread 2 is completely executed
 t2.join()
 
+"_".join()
+
 # both threads completely executed
 print("Done!")
 
