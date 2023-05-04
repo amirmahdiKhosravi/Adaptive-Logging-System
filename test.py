@@ -35,6 +35,15 @@ t2.join()
 
 "_".join()
 
+def post_list(request):
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date').order_by()
+    return render(request, 'blog/post_list.html', {'posts': posts})
+    
+def post_list(request):
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
+    Post.b.a()
+    return render(request, 'blog/post_list.html', {'posts': posts})
+
 # both threads completely executed
 print("Done!")
 
