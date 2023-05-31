@@ -1,0 +1,30 @@
+<mxfile host="Electron" modified="2023-05-31T19:03:22.920Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.8 Chrome/112.0.5615.165 Electron/24.2.0 Safari/537.36" etag="WGff_toByh5aliMB02j9" version="21.2.8" type="device">
+  <diagram name="Page-1" id="HNmFx-NB3xg4kWhVHFb8">
+    <mxGraphModel dx="880" dy="531" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-1" value="&lt;b&gt;&lt;i&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;R =&lt;/font&gt;&lt;/i&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-2" value="Baseline" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="160" width="220" height="200" as="geometry">
+            <mxRectangle x="180" y="160" width="90" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-3" value="&lt;span style=&quot;font-size: 25px;&quot;&gt;&lt;b&gt;&lt;i&gt;+&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-4" value="Performance Bug Scenarios" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="160" width="245" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-11" value="&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;API Misuses:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overuing&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;extra()&lt;/b&gt;&lt;/li&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overusing&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;order_by()&lt;/b&gt;&lt;/li&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overusing&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;select_related()&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Synchronization:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Any sign of using &lt;b&gt;multi-threading&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Loops:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Utilizing any kind of &lt;b&gt;loops&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="mCqiu4VrbJPYMKOyVtJH-4">
+          <mxGeometry x="-45" y="25" width="290" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="mCqiu4VrbJPYMKOyVtJH-10" value="&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;API Misuses:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overuing&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;extra()&lt;/b&gt;&lt;/li&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overusing&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;order_by()&lt;/b&gt;&lt;/li&gt;&lt;li style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;Overusing&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;select_related()&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Synchronization:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Any sign of using &lt;b&gt;multi-threading&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Loops:&lt;/li&gt;&lt;ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Utilizing any kind of &lt;b&gt;loops&lt;/b&gt;&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="150" y="175" width="290" height="170" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
