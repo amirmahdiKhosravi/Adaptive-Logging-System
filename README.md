@@ -6,8 +6,31 @@ A reinforcement learning–based framework that automatically recommends where a
 
 ---
 
+## About
+
+The **Adaptive Logging System (ALS)** is a research project that applies reinforcement learning to solve a common challenge in software engineering: deciding *where* to place log statements and *which log level* to use. Poor logging practices lead to performance overhead or insufficient visibility during debugging and postmortem analysis.
+
+ALS addresses this by:
+
+- **Automatically recommending log placement** — using static code analysis to extract 12 features per function that capture performance-bug potential (Loops, Synchronization, and API Misuses).
+- **Adapting to custom logging objectives** — trained RL agents (DQN, A2C, PPO1) learn policies tailored to the specified goal rather than following a one-size-fits-all heuristic.
+- **Generalizing across projects** — validated on 17 diverse open-source Python projects from the Apache and Django ecosystems, demonstrating stable cross-project performance.
+
+This work was developed in collaboration with **Ciena**, an industrial partner requiring adaptive, performance-aware logging for resource-constrained environments such as network routers.
+
+| | |
+|---|---|
+| **Language** | Python |
+| **ML Framework** | Stable Baselines 2 (TensorFlow 1.x) |
+| **Algorithms** | DQN · A2C · PPO1 |
+| **Domain** | Software Engineering / MLOps |
+| **Focus** | Performance bug detection via intelligent log placement |
+
+---
+
 ## Table of Contents
 
+- [About](#about)
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
 - [Source Code Features](#source-code-features)
